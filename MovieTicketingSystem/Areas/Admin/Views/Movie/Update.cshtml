@@ -1,0 +1,127 @@
+﻿@model MovieWithDetailsVM
+
+<div class="container">
+    <div class="row"><div class="display-6 my-4">Update Movie</div></div>
+    <div class="row">
+        
+        <form method="post" enctype="multipart/form-data">
+            <input type="hidden" asp-for="Movie.Id" />
+            <div class="mb-3">
+                <label asp-for="Movie.Name" class="form-label">Name</label>
+                <input type="text" class="form-control" id="Name" name="Name" aria-describedby="Name" value="@Model.Movie.Name">
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Movie.Description" class="form-label">Description</label>
+                <div class="form-floating">
+                    <textarea class="form-control" name="Description" placeholder="Leave a description here" id="Description">@Model.Movie.Description</textarea>
+                    <label for="Description">Leave a description here</label>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Select Actors</label>
+                <div class="row">
+                    @foreach (var actor in Model.Actors)
+                    {
+                        var isSelected = Model.MovieActors != null && Model.MovieActors.Any(ma => ma.ActorId == actor.Id);
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="actors" value="@actor.Id" id="actor_@actor.Id">
+                                <label class="form-check-label" for="actor_@actor.Id">
+                                    @actor.Name
+                                </label>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Movie.Status" class="form-label">Status</label>
+                <select asp-for="Movie.Status" class="form-select" aria-label="Status">
+                    @if (Model.Movie.Status == true)
+                    {
+                        <option value="True" selected>Available</option>
+                        <option value="false">unavailable</option>
+                    }
+                    else
+                    {
+                        <option value="true">Available</option>
+                        <option value="False" selected>unavailable</option>
+                    }
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="MainImg" class="form-label">Upload Main Img</label>
+                <input class="form-control" type="file" name="MainImg" id="MainImg" accept="image/*">
+            </div>
+
+            <div class="mb-3">
+                <img id="preview"
+                     src="~/imgs/movies/@Model.Movie.MainImg"
+                     alt="Current Image"
+                     style="max-width: 200px; border:1px solid #ccc; padding:5px; border-radius:10px;" />
+            </div>
+
+            <div class="mb-3">
+                <label for="SubImgs" class="form-label">Upload Sub Imgs</label>
+                <input class="form-control" type="file" name="subImgs" id="SubImgs" multiple accept="image/*">
+            </div>
+            <div class="mb-3">
+                @foreach (var item in Model.MovieSubImgs)
+                {
+                        <img id="preview"
+                             src="~/imgs/movies/sub-imgs/@item.ImageUrl"
+                             alt="Current Image"
+                             style="max-width: 200px; border:1px solid #ccc; padding:5px; border-radius:10px;" />
+                }
+            </div>
+
+            <div class="mb-3">
+                <label for="Price" class="form-label">Price</label>
+                <input type="text" class="form-control" id="Price" name="Price" aria-describedby="PriceHelp" value="@Model.Movie.Price">
+            </div>
+
+
+            <div class="mb-3">
+                <label for="CategoryId" class="form-label">Category</label>
+                <select name="CategoryId" id="CategoryId" class="form-select">
+                    @foreach (var item in Model.Cinemas)
+                    {
+
+                        @if (Model.Movie.CategoryId == item.Id)
+                        {
+                            <option value="@item.Id" selected>@item.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@item.Id">@item.Name</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="CinemaId" class="form-label">Cinema</label>
+                <select name="CinemaId" id="CinemaId" class="form-select">
+                    @foreach (var item in Model.Cinemas)
+                    {
+
+                        @if (Model.Movie.CinemaId == item.Id)
+                        {
+                            <option value="@item.Id" selected>@item.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@item.Id">@item.Name</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+</div>

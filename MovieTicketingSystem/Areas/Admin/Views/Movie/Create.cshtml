@@ -1,0 +1,85 @@
+﻿@model MovieWithDetailsVM
+
+<div class="container">
+    <div class="row"><div class="display-6 my-4">Add New Movie</div></div>
+    <div class="row">
+        @*<form action="/Admin/Category/Create">*@
+        <form method="post" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="Name" class="form-label">Name</label>
+                <input type="text" class="form-control" id="Name" name="Name" aria-describedby="NameHelp">
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label fw-bold">Select Actors</label>
+                <div class="row">
+                    @foreach (var actor in Model.Actors)
+                    {
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="actors" value="@actor.Id" id="actor_@actor.Id">
+                                <label class="form-check-label" for="actor_@actor.Id">
+                                    @actor.Name
+                                </label>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="Description" class="form-label">Description</label>
+                <div class="form-floating">
+                    <textarea class="form-control" name="Description" placeholder="Leave a description here" id="Description"></textarea>
+                    <label for="Description">Leave a description here</label>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="Status" class="form-label">Status</label>
+                <select name="Status" class="form-select" aria-label="Status">
+                    <option value="True">Available</option>
+                    <option value="False">Unavailable</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="MainImg" class="form-label">Upload Main Img</label>
+                <input class="form-control" type="file" name="MainImg" id="MainImg" accept="image/*">
+            </div>
+
+            <div class="mb-3">
+                <label for="SubImgs" class="form-label">Upload Sub Imgs</label>
+                <input class="form-control" type="file" name="subImgs" id="SubImgs" multiple accept="image/*">
+            </div>
+
+            <div class="mb-3">
+                <label for="Price" class="form-label">Price</label>
+                <input type="text" class="form-control" id="Price" name="Price" aria-describedby="PriceHelp">
+            </div>
+
+
+            <div class="mb-3">
+                <label for="CategoryId" class="form-label">Category</label>
+                <select name="CategoryId" id="CategoryId" class="form-select">
+                    @foreach (var item in Model.Categories)
+                    {
+                        <option value="@item.Id">@item.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="CinemaId" class="form-label">Cinema</label>
+                <select name="CinemaId" id="CinemaId" class="form-select">
+                    @foreach (var item in Model.Cinemas)
+                    {
+                        <option value="@item.Id">@item.Name</option>
+                    }
+                </select>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,8 @@
+﻿global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.EntityFrameworkCore.Metadata.Builders;
+global using MovieTicketingSystem.DataAccess;
+global using MovieTicketingSystem.Helpers;
+global using MovieTicketingSystem.Models;
+global using MovieTicketingSystem.Utility;
+global using MovieTicketingSystem.ViewModels;

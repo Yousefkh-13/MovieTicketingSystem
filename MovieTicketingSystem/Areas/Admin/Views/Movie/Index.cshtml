@@ -1,0 +1,195 @@
+﻿                                                                                    <!-- PRODUCT INDEX -->
+@model MovieWithFilterVM
+
+}
+<div class="container">
+    <div class="row mb-3 align-items-center my-3">
+        <div class="col-md-6">
+            <h2 class="display-6">All Movies</h2>
+        </div>
+        <div class="col-md-6 text-md-end text-start mt-2 mt-md-0">
+            <a href="/Admin/Movie/Create" class="btn btn-success"><i class="bi bi-plus-circle"></i>Create</a>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <section class="py-3 filter-bar">
+        <div class="container">
+            <div class="row" style="background-color: rgba(var(--bs-light-rgb), var(--bs-bg-opacity)) !important;">
+                <div class="col-12">
+                    <!--#Added action index to take value from query string and send it to the controller -->
+                    <form>
+                        <div class="row my-2">
+                            <div class="col-md-2">
+                                <input type="text" class="form-control" placeholder="Name" name="name" value="@Model.Name">
+                            </div>
+                            <div class="col-md-2">
+                                <input type="text" class="form-control" placeholder="Min Price" name="minPrice" value="@Model.MinPrice">
+                            </div>
+                            <div class="col-md-2">
+                                <input type="text" class="form-control" placeholder="Max Price" name="maxPrice" value="@Model.MaxPrice">
+                            </div>
+                            <div class="col-md-2">
+                                <select name="CategoryId" class="form-select">
+                                <option value="">All Categories</option>
+                                @foreach (var item in Model.Categories)
+                                {
+                                        @if (Model.CategoryId == item.Id)
+                                        {
+                                            <option value="@item.Id" selected>@item.Name</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@item.Id">@item.Name</option>
+                                        }
+                                }
+                            </select>
+                            </div>
+                            <div class="col-md-2">
+                                <select name="CinemaId" class="form-select">
+                                    <option value="">All Cinemas</option>
+                                    @foreach (var item in Model.Cinemas)
+                                    {
+                                        
+                                        @if (Model.CinemaId == item.Id)
+                                        {
+                                            <option value="@item.Id" selected>@item.Name</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@item.Id">@item.Name</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            
+                            <div class="row my-2">
+                                <div class="col-md-3">
+                                    <button type="submit" class="btn btn-dark">Filter</button>
+                                    <a href="/Admin/Movie" class="btn btn-secondary">Reset</a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="row">
+        <div class="col-12">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Price</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Category Name</th>
+                        <th scope="col">Cinema Name</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!--# Added .Products to Model within the foreach -->
+                    @foreach (var item in Model.Movies)
+                    {
+                        <tr>
+                            <th scope="row">@item.Id</th>
+                            <td>@item.Name</td>
+                            <td>@item.Price.ToString("C")</td>
+
+                            @if (item.Status)
+                            {
+                                <td><span class="badge text-bg-success">Available</span></td>
+                            }
+                            else
+                            {
+                                <td><span class="badge text-bg-danger">Unavailable</span></td>
+                            }
+                            <td><span class="badge text-bg-info">@item.Category.Name</span></td>
+                            <td><span class="badge text-bg-info">@item.Cinema.Name</span></td>
+                            <td class="d-flex gap-1 align-items-center">
+                                <a href="/Admin/Movie/Details/@item.Id" type="button" class="btn btn-success"><i class="bi bi-pencil-square"></i>View @* <asp-action ="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm text-white" title="View Details"><i class="bi bi-eye-fill"></i> *@</a>
+                                <a href="/Admin/Movie/Update/@item.Id" type="button" class="btn btn-warning"><i class="bi bi-pencil-square"></i>Edit</a>
+                                <a href="/Admin/Movie/Delete/@item.Id" class="btn btn-danger btn-delete"><i class="bi bi-trash"></i> Delete</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 d-flex justify-content-center">
+            <nav aria-label="Page navigation example">
+                <ul class="pagination">
+                    @if (Model.CurrentPage > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="/Admin/Movie/Index?page=@(Model.CurrentPage - 1)" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    }
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        @if (i == Model.CurrentPage)
+                        {
+                            <li class="page-item active"><a class="page-link" href="/Admin/Movie/Index?page=@i">@i</a></li>
+                        }
+                        else
+                        {
+                            <li class="page-item"><a class="page-link" href="/Admin/Movie/Index?page=@i">@i</a></li>
+                        }
+                    }
+                    @if (Model.CurrentPage != Model.TotalPages)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="/Admin/Movie/Index?page=@(Model.CurrentPage + 1)" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const deleteButtons = document.querySelectorAll(".btn-delete");
+
+        deleteButtons.forEach(button => {
+            button.addEventListener("click", function(e) {
+                e.preventDefault(); // stop normal navigation
+
+                const url = this.getAttribute("href");
+
+                Swal.fire({
+                    title: "Are you sure?",
+                    text: "This action cannot be undone!",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#d33",
+                    cancelButtonColor: "#3085d6",
+                    confirmButtonText: "Yes, delete it!"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: "Deleted!",
+                            text: "Your Movie has been deleted.",
+                            icon: "success"
+                        }, 3000);
+
+                        // Redirect to delete URL
+                        window.location.href = url;
+                    }
+                });
+            });
+        });
+    });
+</script>

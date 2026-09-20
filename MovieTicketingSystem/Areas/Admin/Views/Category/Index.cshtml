@@ -1,0 +1,168 @@
+﻿@model CategoryWithFilterVM
+
+<div class="container">
+    <div class="row mb-3 align-items-center my-3">
+        <div class="col-md-6">
+            <h2 class="display-6">All Categories</h2>
+        </div>
+        <div class="col-md-6 text-md-end text-start mt-2 mt-md-0">
+            <a href="/Admin/Category/Create" class="btn btn-success"><i class="bi bi-plus-circle"></i>Create</a>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <section class="py-3 filter-bar">
+        <div class="container">
+            <div class="row" style="background-color: rgba(var(--bs-light-rgb), var(--bs-bg-opacity)) !important;">
+                <div class="col-12">
+                    <form action="Index">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <input type="text" class="form-control" placeholder="Name" name="query" value="@Model.Query">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-dark w-100">Filter</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    @* <!-- DropDown List -->
+    <div class="row">
+        <div class="row-cols-6">
+            <nav aria-label="Page navigation example">
+                <div class="dropdown">
+                    <button class="btn btn-dark w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Dropdown button
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/Admin/Category/Index?page=@(Model.CurrentPage + 1)">2</a></li>
+                        <li><a class="dropdown-item" href="#">4</a></li>
+                        <li><a class="dropdown-item" href="/Admin/Category/Index?page=@(Model.TotalPages)">6</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    </div> *@
+
+    <div class="table-responsive scrollbar">
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th scope="col">Category Name</th>
+                <th scope="col">Description</th>
+                <th scope="col">Status</th>
+                <th class="text-end" scope="col">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Categories)
+            {
+                <tr class="table-active">
+                    <td>@item.Name</td>
+                    <td>@item.Description</td>
+                    <td>
+                        @if (item.Status)
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Inactive</span>
+                        }
+                    </td>
+                    <td class="text-end">
+                        <div>
+                            <a href="/admin/category/update/@item.Id" class="btn btn-link p-0" type="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit">
+                                <span class="text-500 fas fa-edit"></span>
+                            </a>
+                            <a href="/admin/category/delete/@item.Id" class="btn btn-link p-0 ms-2 btn-delete" title="Delete">
+                                <span class="text-500 fas fa-trash-alt"></span> 
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+    <div class="row">
+    <div class="col-12 d-flex justify-content-center">
+
+            <nav aria-label="Page navigation example">
+                <ul class="pagination">
+                  @if (Model.CurrentPage > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="/Admin/Category/Index?page=@(Model.CurrentPage-1)" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    }
+                    
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        @if (i == Model.CurrentPage)
+                        {
+                            <li class="page-item active"><a class="page-link" href="/Admin/Category/Index?page=@i">@i</a></li>
+
+                        } 
+                        else
+                        {
+                            <li class="page-item"><a class="page-link" href="/Admin/Category/Index?page=@i">@i</a></li>
+                        }
+                    }
+                    
+                    @if (Model.CurrentPage != Model.TotalPages)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="/Admin/Category/Index?page=@(Model.CurrentPage+1)" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    }
+                    
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const deleteButtons = document.querySelectorAll(".btn-delete");
+
+        deleteButtons.forEach(button => {
+            button.addEventListener("click", function (e) {
+                e.preventDefault(); // stop normal navigation
+
+                const url = this.getAttribute("href");
+
+                Swal.fire({
+                    title: "Are you sure?",
+                    text: "This action cannot be undone!",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#d33",
+                    cancelButtonColor: "#3085d6",
+                    confirmButtonText: "Yes, delete it!"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: "Deleted!",
+                            text: "Your Category has been deleted.",
+                            icon: "success"
+                        }, 3000);
+
+                        // Redirect to delete URL
+                        window.location.href = url;
+                    }
+                });
+            });
+        });
+    });
+</script>
