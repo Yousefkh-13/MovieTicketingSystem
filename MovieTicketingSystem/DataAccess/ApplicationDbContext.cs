@@ -1,12 +1,12 @@
 ﻿using MovieTicketingSystem.DataAccess.EntityConfigurations;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+
 
 namespace MovieTicketingSystem.DataAccess
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
-        public ApplicationDbContext()
-        {
-        }
+        
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
         }
@@ -17,12 +17,12 @@ namespace MovieTicketingSystem.DataAccess
         public DbSet<MovieSubImg> MovieSubImgs { get; set; }
         public DbSet<MovieActor> MovieActors { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            base.OnConfiguring(optionsBuilder);
-            optionsBuilder.UseSqlServer("Data Source=.;Initial Catalog=MovieTicketingDB;" +
-                "Integrated Security=True;Encrypt=True;Trust Server Certificate=True;");
-        }
+        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        //{
+        //    base.OnConfiguring(optionsBuilder);
+        //    optionsBuilder.UseSqlServer("Data Source=.;Initial Catalog=MovieTicketingDB;" +
+        //        "Integrated Security=True;Encrypt=True;Trust Server Certificate=True;");
+        //}
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

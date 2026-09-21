@@ -1,15 +1,43 @@
-﻿using MovieTicketingSystem.ViewModels;
+﻿
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace MovieTicketingSystem.Areas.Admin.Controllers
 {
+    [Area(AreaConstants.ADMIN_AREA)]
+
     public class MovieController : Controller
     {
-        private readonly ApplicationDbContext _db = new();
+        //private readonly ApplicationDbContext _db = new();
+
         IFileUpload fileUpload = new FileUpload();
+
+        private readonly IRepository<Movie> _movieRepository;
+        private readonly IBulkRepository<MovieSubImg> _movieSubImgRepository;// = new BulkRepository<MovieSubImg>();
+        private readonly IRepository<Category> _categoryRepository;// = new Repository<Category>();
+        private readonly IRepository<Cinema> _cinemaRepository;// = new Repository<Cinema>();
+        private readonly IRepository<Actor> _actorRepository;// = new Repository<Actor>();
+        private readonly IBulkRepository<MovieActor> _movieactorRepository;// = new Repository<MovieActor>();
+
+        public MovieController(IRepository<Movie> movieRepository,
+            IBulkRepository<MovieSubImg> movieSubImgRepository,
+            IRepository<Category> categoryRepository,
+            IRepository<Cinema> cinemaRepository,
+            IRepository<Actor> actorRepository,
+            IBulkRepository<MovieActor> movieactorRepository)
+        {
+            _movieRepository = movieRepository;
+            _movieSubImgRepository = movieSubImgRepository;
+            _categoryRepository = categoryRepository;
+            _cinemaRepository = cinemaRepository;
+            _actorRepository = actorRepository;
+            _movieactorRepository = movieactorRepository;
+        }
+
 
         public IActionResult Index(MovieFilterVM movieFilterVM, int page = 1, int size = 4)
         {
-            var movies = _db.Movies.Include(e => e.Category).Include(e => e.Cinema).AsQueryable();
+            //var movies = _db.Movies.Include(e => e.Category).Include(e => e.Cinema).AsQueryable();
+            var movies = _movieRepository.Get(includes: [e => e.Category, e => e.Cinema]);
 
             // Filtering
             if (movieFilterVM.name != null)
@@ -32,8 +60,11 @@ namespace MovieTicketingSystem.Areas.Admin.Controllers
             var totalPages = Math.Ceiling(movies.Count() / (double)size);
             movies = movies.Skip((page - 1) * size).Take(size);
 
-            var categories = _db.Categories.AsQueryable();
-            var cinemas = _db.Cinemas.AsQueryable();
+            //var categories = _db.Categories.AsQueryable();
+            //var cinemas = _db.Cinemas.AsQueryable();
+
+            var categories = _categoryRepository.Get();
+            var cinemas = _cinemaRepository.Get();
 
             return View(new MovieWithFilterVM()
             {
@@ -47,26 +78,30 @@ namespace MovieTicketingSystem.Areas.Admin.Controllers
                 MaxPrice = movieFilterVM.maxPrice,
                 CategoryId = movieFilterVM.categoryId,
                 CinemaId = movieFilterVM.cinemaId,
-                
+
             });
         }
 
         [HttpGet]
         public IActionResult Create()
         {
-            var categories = _db.Categories.AsQueryable();
-            var cinemas = _db.Cinemas.AsQueryable();
-            var actors = _db.Actors.AsQueryable();
-            
-            return View(new MovieWithDetailsVM()
+            //var categories = _db.Categories.AsQueryable();
+            //var cinemas = _db.Cinemas.AsQueryable();
+            //var actors = _db.Actors.AsQueryable();
+
+            var categories = _categoryRepository.Get();
+            var cinemas = _cinemaRepository.Get();
+            var actors = _actorRepository.Get();
+
+            return View(new MovieWithFilterVM()
             {
                 Categories = categories,
                 Cinemas = cinemas,
-                Actors = actors
+
             });
         }
         [HttpPost]
-        public IActionResult Create(Movie movie, IFormFile mainImg, List<IFormFile> subImgs, List<string> actors)
+        public async Task<IActionResult> Create(Movie movie, IFormFile mainImg, List<IFormFile> subImgs, List<string> actors, CancellationToken ct = default)
         {
             if (mainImg is not null && mainImg.Length > 0)
             {
@@ -80,8 +115,10 @@ namespace MovieTicketingSystem.Areas.Admin.Controllers
                 movie.MainImg = fileName;
             }
 
-            _db.Movies.Add(movie);
-            _db.SaveChanges();
+            //_db.Movies.Add(movie);
+            //_db.SaveChanges();
+            await _movieRepository.CreateAsync(movie, ct);
+            await _movieRepository.CommitAsync(ct);
 
             if (actors is not null && actors.Count > 0)
             {
@@ -94,7 +131,9 @@ namespace MovieTicketingSystem.Areas.Admin.Controllers
                             MovieId = movie.Id,
                             ActorId = actorId
                         };
-                        _db.MovieActors.Add(movieActor);
+
+                        //_db.MovieActors.Add(movieActor);
+                        await _movieactorRepository.CreateAsync(movieActor, ct);
                     }
                 }
             }
@@ -112,43 +151,61 @@ namespace MovieTicketingSystem.Areas.Admin.Controllers
 
                     fileUpload.UploadFileLocally(filePath, item);
 
-                    _db.MovieSubImgs.Add(new MovieSubImg()
+                    //_db.MovieSubImgs.Add(new MovieSubImg()
+                    await _movieSubImgRepository.CreateAsync(new()
                     {
                         ImageUrl = fileName,
                         MovieId = movie.Id,
                     });
                 }
             }
-            _db.SaveChanges();
+            //_db.SaveChanges();
+            await _movieRepository.CommitAsync(ct);
+
             return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]
         public IActionResult Update(int id)
         {
-            var movie = _db.Movies.AsNoTracking().FirstOrDefault(e => e.Id == id);
+            //var movie = _db.Movies.AsNoTracking().FirstOrDefault(e => e.Id == id);
+            var movie = _movieRepository.GetOne(e => e.Id == id, tracked: false);
 
             if (movie is null) return NotFound();
 
-            var categories = _db.Categories.AsQueryable();
-            var cinemas = _db.Cinemas.AsQueryable();
-            var actors = _db.Actors.AsQueryable();
-            var movieSubImgs = _db.MovieSubImgs.Where(e => e.MovieId == movie.Id);
+            var categories = _categoryRepository.Get();
+            var cinemas = _cinemaRepository.Get();
+            var actors = _actorRepository.Get();
+
+            var movieSubImgs = _movieSubImgRepository.Get(e => e.MovieId == movie.Id);
 
             return View(new MovieWithDetailsVM()
             {
                 Movie = movie ?? new(),
                 MovieSubImgs = movieSubImgs,
                 Categories = categories,
-                Cinemas = cinemas, 
+                //.Select(e => new SelectListItem
+                //{
+                //    Text = e.Name,
+                //    Value = e.Id.ToString(),
+                //}),
+                Cinemas = cinemas
+                //.Select(e => new SelectListItem
+                //{
+                //    Text = e.Name,
+                //    Value = e.Id.ToString(),
+                //}
+                ,
                 Actors = actors
             });
         }
 
         [HttpPost]
-        public IActionResult Update(Movie movie, IFormFile mainImg, List<IFormFile> subImgs, List<string> actors)
+        public async Task<IActionResult> Update(Movie movie, IFormFile mainImg, List<IFormFile> subImgs, List<string> actors, CancellationToken ct = default)
         {
-            var movieInDb = _db.Movies.AsNoTracking().FirstOrDefault(e => e.Id == movie.Id);
+            //var movieInDb = _db.Movies.AsNoTracking().FirstOrDefault(e => e.Id == movie.Id);
+            var movieInDb = _movieRepository.GetOne(e => e.Id == movie.Id, tracked: false);
+
             if (movieInDb is null) return NotFound();
 
             if (mainImg is not null && mainImg.Length > 0)
@@ -170,12 +227,17 @@ namespace MovieTicketingSystem.Areas.Admin.Controllers
             }
             else movie.MainImg = movieInDb.MainImg;
 
-            _db.Movies.Update(movie);
-            _db.SaveChanges();
+            //_db.Movies.Update(movie);
+            //_db.SaveChanges();
+
+            _movieRepository.Update(movie);
+            await _movieRepository.CommitAsync(ct);
+
 
             if (subImgs.Any())
             {
-                var oldImgs = _db.MovieSubImgs.Where(e => e.MovieId == movie.Id);
+                //var oldImgs = _db.MovieSubImgs.Where(e => e.MovieId == movie.Id);
+                var oldImgs = _movieSubImgRepository.Get(e => e.MovieId == movie.Id);
 
                 foreach (var item in oldImgs)
                 {
@@ -185,7 +247,9 @@ namespace MovieTicketingSystem.Areas.Admin.Controllers
                     fileUpload.DeleteFileLocally(oldFilePath);
                 }
 
-                _db.MovieSubImgs.RemoveRange(oldImgs);
+                //_db.MovieSubImgs.RemoveRange(oldImgs);
+                _movieSubImgRepository.DeleteRange(oldImgs);
+
 
                 foreach (var item in subImgs)
                 {
@@ -197,48 +261,60 @@ namespace MovieTicketingSystem.Areas.Admin.Controllers
 
                     fileUpload.UploadFileLocally(filePath, item);
 
-                    _db.MovieSubImgs.Add(new MovieSubImg()
+                    //_db.MovieSubImgs.Add(new MovieSubImg()
+                    await _movieSubImgRepository.CreateAsync(new()
                     {
                         ImageUrl = fileName,
                         MovieId = movie.Id
                     });
-                }    
-                _db.SaveChanges();
+                }
+                //_db.SaveChanges();
+                await _movieRepository.CommitAsync(ct);
             }
 
             if (actors is not null)
             {
-                var oldMovieActors = _db.MovieActors.Where(e => e.MovieId == movie.Id);
-                _db.MovieActors.RemoveRange(oldMovieActors);
+                //var oldMovieActors = _db.MovieActors.Where(e => e.MovieId == movie.Id);
+                //_db.MovieActors.RemoveRange(oldMovieActors);
+                
+                var oldMovieActors = _movieactorRepository.Get(e => e.MovieId == movie.Id);
+                _movieactorRepository.DeleteRange(oldMovieActors);
 
                 foreach (var actorIdStr in actors)
                 {
                     if (int.TryParse(actorIdStr, out int actorId))
                     {
-                        _db.MovieActors.Add(new MovieActor()
-                        {
+                        //_db.MovieActors.Add(new MovieActor()
+                        await _movieactorRepository.CreateAsync(new()
+                                                {
                             MovieId = movie.Id,
                             ActorId = actorId
                         });
                     }
                 }
-                _db.SaveChanges();
+                //_db.SaveChanges();
+                await _movieRepository.CommitAsync(ct);
+
             }
-           return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]
         public IActionResult Details(int id)
         {
-            var movie = _db.Movies
-                .Where(e => e.Id == id)
-                //.Include(e=>e.MainImg)
-                .Include(e => e.Cinema)
-                .Include(e => e.Category)
-                .Include(e => e.MovieSubImgs)
-                .Include(e => e.MovieActors)
-                .ThenInclude(e => e.Actor)
-                .FirstOrDefault();
+            //var movie = _db.Movies
+            //    .Where(e => e.Id == id)
+            //    //.Include(e=>e.MainImg)
+            //    .Include(e => e.Cinema)
+            //    .Include(e => e.Category)
+            //    .Include(e => e.MovieSubImgs)
+            //    .Include(e => e.MovieActors)
+            //    .ThenInclude(e => e.Actor)
+            //    .FirstOrDefault();
+            var movie = _movieRepository.GetOne(includes:
+            [
+                e => e.Id == id, e => e.Category, e => e.Cinema, e => e.MovieSubImgs, e => e.MovieActors, e => e.MainImg
+            ]);
 
             if (movie is null) return NotFound();
 

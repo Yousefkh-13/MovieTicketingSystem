@@ -6,3 +6,4 @@ global using MovieTicketingSystem.Helpers;
 global using MovieTicketingSystem.Models;
 global using MovieTicketingSystem.Utility;
 global using MovieTicketingSystem.ViewModels;
+global using MovieTicketingSystem.Repositories.IRepositories;

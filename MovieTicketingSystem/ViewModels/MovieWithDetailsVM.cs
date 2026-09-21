@@ -1,4 +1,6 @@
-﻿namespace MovieTicketingSystem.ViewModels
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+
+namespace MovieTicketingSystem.ViewModels
 {
     public class MovieWithDetailsVM
     {
@@ -8,5 +10,6 @@
         public IEnumerable<MovieSubImg> MovieSubImgs { get; set; } = new List<MovieSubImg>();
         public IEnumerable<MovieActor> MovieActors { get; set; } = new List<MovieActor>();
         public IEnumerable<Actor> Actors { get; set; } = new List<Actor>();
+
     }
 }

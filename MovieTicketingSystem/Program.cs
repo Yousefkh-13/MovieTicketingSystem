@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.Identity;
+using MovieTicketingSystem.Repositories;
+
 namespace MovieTicketingSystem
 {
     public class Program
@@ -8,6 +11,36 @@ namespace MovieTicketingSystem
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+
+            builder.Services.AddScoped<IRepository<Category>, Repository<Category>>();
+            builder.Services.AddScoped<IRepository<Cinema>, Repository<Cinema>>();
+            builder.Services.AddScoped<IRepository<Movie>, Repository<Movie>>();
+            builder.Services.AddScoped<IBulkRepository<MovieSubImg>, BulkRepository<MovieSubImg>>();
+            builder.Services.AddScoped<IBulkRepository<MovieActor>, BulkRepository<MovieActor>>();
+
+
+            var connectionString =
+                            builder.Configuration.GetConnectionString("DefaultConnection")
+                                ?? throw new InvalidOperationException("Connection string"
+                                + "'DefaultConnection' not found.");
+
+            builder.Services.AddDbContext<ApplicationDbContext>(optionsBuilder =>
+            {
+                optionsBuilder.UseSqlServer(connectionString);
+            });
+
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            {
+                options.User.RequireUniqueEmail = true;
+                options.Password.RequiredLength = 8;
+                options.Password.RequiredUniqueChars = 0;
+                options.Lockout.MaxFailedAccessAttempts = 6;
+                options.SignIn.RequireConfirmedEmail = true;
+                options.SignIn.RequireConfirmedPhoneNumber = false;
+            })
+                .AddEntityFrameworkStores<ApplicationDbContext>();
+
+
 
             var app = builder.Build();
 
